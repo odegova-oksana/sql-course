@@ -1,0 +1,160 @@
+Практическое задание тема №1
+
+mysql -u root -p
+Enter password: 
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 13
+Server version: 8.0.11 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2018, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> create database example;
+Query OK, 1 row affected (0.11 sec)
+
+mysql> use example;
+Database changed
+
+mysql> create table users (id int, name VARCHAR(255));
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> select * from users;
+Empty set (0.01 sec)
+
+mysql> describe users;
++-------+--------------+------+-----+---------+-------+
+| Field | Type         | Null | Key | Default | Extra |
++-------+--------------+------+-----+---------+-------+
+| id    | int(11)      | YES  |     | NULL    |       |
+| name  | varchar(255) | YES  |     | NULL    |       |
++-------+--------------+------+-----+---------+-------+
+2 rows in set (0.01 sec)
+
+https://mysqlserverteam.com/introducing-mysqlpump/
+
+mysqlpump --databases example --user=root --password > full_backup.sql
+Enter password: 
+Dump progress: 1/1 tables, 0/0 rows
+Dump completed in 827
+
+mysql -uroot -p < sample_backup.sql;
+
+Практическое задание тема №2
+
+Задание 1. Пусть в таблице catalogs базы данных shop в строке name могут находиться пустые строки и поля принимающие значение NULL. Напишите запрос, который заменяет все такие поля на строку ‘empty’. Помните, что на уроке мы установили уникальность на поле name. Возможно ли оставить это условие? Почему?
+
+mysql> create database shop;
+Query OK, 1 row affected (0.03 sec)
+
+mysql> use shop;
+Database changed
+
+mysql> create table catalogs (id int, name VARCHAR(255));
+Query OK, 0 rows affected (0.09 sec)
+
+mysql> insert into catalogs (id, name) values (1, null);
+Query OK, 1 row affected (0.05 sec)
+
+mysql> insert into catalogs (id, name) values (2, null);
+Query OK, 1 row affected (0.10 sec)
+
+mysql> insert into catalogs (id, name) values (3, null);
+Query OK, 1 row affected (0.09 sec)
+
+mysql> update catalogs set name = 'empty' where name is null;
+Query OK, 3 rows affected (0.07 sec)
+Rows matched: 3  Changed: 3  Warnings: 0
+
+mysql> select * from catalogs;
++------+-------+
+| id   | name  |
++------+-------+
+|    1 | empty |
+|    2 | empty |
+|    3 | empty |
++------+-------+
+3 rows in set (0.00 sec)
+
+Условие оставить нельзя, так как будет ошибка на уникальность поля.
+
+Задание 2. Спроектируйте базу данных, которая позволяла бы организовать хранение медиа-файлов, загружаемых пользователем (фото, аудио, видео). Сами файлы будут храниться в файловой системе, а база данных будет хранить только пути к файлам, названия, описания, ключевых слов и принадлежности пользователю.
+
+mysql> create database storage;
+Query OK, 1 row affected (0.10 sec)
+
+mysql> use storage;
+Database changed
+
+http://www.mysqltutorial.org/mysql-primary-key/
+
+Вариант 1:
+mysql> create table content (id int primary key, name VARCHAR(255), type VARCHAR(50), path VARCHAR(1000), description VARCHAR(1000), key_words VARCHAR(255), user VARCHAR(50));
+
+Вариант 2:
+mysql> create table users (id int primary key, name VARCHAR(255));
+mysql> create table types (id int primary key, name VARCHAR(255));
+mysql> create table content (id int primary key, name VARCHAR(255), type_id int, path VARCHAR(1000), description VARCHAR(1000), key_words VARCHAR(255), user_id int, FOREIGN KEY(type_id) REFERENCES types(id), FOREIGN KEY(user_id) REFERENCES users(id));
+
+Задание 3. (по желанию) В учебной базе данных shop присутствует таблица catalogs. Пусть в базе данных sample имеется таблица cat, в которой могут присутствовать строки с такими же первичными ключами. Напишите запрос, который копирует данные из таблицы catalogs в таблицу cat, при этом для записей с конфликтующими первичными ключами в таблице cat должна производиться замена значениями из таблицы catalogs.
+
+mysql> create database shop;
+Query OK, 1 row affected (0.03 sec)
+
+mysql> use shop;
+Database changed
+
+mysql> create table catalogs (id int primary key, name VARCHAR(255));
+Query OK, 0 rows affected (0.09 sec)
+
+mysql> insert into catalogs (id, name) values (1, 'name1');
+Query OK, 1 row affected (0.10 sec)
+
+mysql> insert into catalogs (id, name) values (2, 'name2');
+Query OK, 1 row affected (0.05 sec)
+
+mysql> insert into catalogs (id, name) values (3, 'name3');
+Query OK, 1 row affected (0.06 sec)
+
+mysql> insert into catalogs (id, name) values (4, 'name4');
+Query OK, 1 row affected (0.05 sec)
+
+mysql> create database sample;
+Query OK, 1 row affected (0.03 sec)
+
+mysql> use sample;
+Database changed
+
+mysql> create table cat (id int primary key, name VARCHAR(255));
+Query OK, 0 rows affected (0.09 sec)
+
+mysql> insert into cat (id, name) values (1, 'cat_name1');
+Query OK, 1 row affected (0.07 sec)
+
+mysql> insert into cat (id, name) values (3, 'cat_name3');
+Query OK, 1 row affected (0.08 sec)
+
+mysql> insert into cat (id, name) values (5, 'cat_name5');
+Query OK, 1 row affected (0.07 sec)
+
+http://www.mysqltutorial.org/mysql-insert-or-update-on-duplicate-key-update/
+
+mysql> insert into sample.cat (id, name) select id, name from shop.catalogs scat on duplicate key update name = scat.name;
+Query OK, 6 rows affected (0.09 sec)
+Records: 4  Duplicates: 2  Warnings: 0
+
+mysql> select * from sample.cat;
++----+-----------+
+| id | name      |
++----+-----------+
+|  1 | name1     |
+|  2 | name2     |
+|  3 | name3     |
+|  4 | name4     |
+|  5 | cat_name5 |
++----+-----------+
+5 rows in set (0.00 sec)
