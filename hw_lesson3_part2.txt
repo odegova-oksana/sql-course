@@ -1,0 +1,61 @@
+Практическое задание тема №4
+
+1. Подсчитайте средний возраст пользователей в таблице users
+
+mysql> select name, floor((to_days(now()) - to_days(birthday_at)) / 365.25) as age from users;
++-------+------+
+| name  | age  |
++-------+------+
+| user1 |   38 |
+| user2 |   34 |
+| user3 |   29 |
+| user4 |   29 |
+| user5 |   21 |
++-------+------+
+
+mysql> select avg(floor((to_days(now()) - to_days(birthday_at)) / 365.25)) as age_avg from users;
++---------+
+| age_avg |
++---------+
+| 30.2000 |
++---------+
+
+2. Подсчитайте количество дней рождения, которые приходятся на каждый из дней недели. Следует учесть, что необходимы дни недели текущего года, а не года рождения.
+
+mysql> select dayname(concat(DATE_FORMAT(now(),'%Y'), '-', DATE_FORMAT(birthday_at,'%m-%d'))) as dayname_now, count(*) as number from users group by dayname_now;
++-------------+--------+
+| dayname_now | number |
++-------------+--------+
+| Saturday    |      1 |
+| Thursday    |      1 |
+| Friday      |      2 |
+| Wednesday   |      1 |
++-------------+--------+
+
+3. (по желанию) Подсчитайте произведение чисел в столбце таблицы
+
+mysql> create table values_table (value int);
+
+mysql> insert into values_table (value) values (1);
+mysql> insert into values_table (value) values (2);
+mysql> insert into values_table (value) values (3);
+mysql> insert into values_table (value) values (4);
+mysql> insert into values_table (value) values (5);
+
+mysql> select * from values_table;
++-------+
+| value |
++-------+
+|     1 |
+|     2 |
+|     3 |
+|     4 |
+|     5 |
++-------+
+
+mysql> SELECT ROUND(EXP(SUM(LOG(value))),1) FROM values_table;
++-------------------------------+
+| ROUND(EXP(SUM(LOG(value))),1) |
++-------------------------------+
+|                         120.0 |
++-------------------------------+
