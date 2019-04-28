@@ -82,11 +82,40 @@ mysql> select * from users;
 |  2 | user2 | 1984-09-26  | 2019-04-28 17:56:14 | 2019-04-28 18:08:33 | 2019-04-28 17:56:00 | 2019-04-28 17:51:00 |
 |  3 | user3 | 1990-04-12  | 2019-04-28 17:56:14 | 2019-04-28 18:08:36 | 2019-04-28 17:56:00 | 2019-04-28 17:51:00 |
 
-
 3. В таблице складских запасов storehouses_products в поле value могут встречаться самые разные цифры: 
 0, если товар закончился и выше нуля, если на складе имеются запасы. 
 Необходимо отсортировать записи таким образом, чтобы они выводились в порядке увеличения значения value. 
 Однако, нулевые запасы должны выводиться в конце, после всех записей.
+
+mysql> create table storehouses_products (id int primary key auto_increment, product varchar(255), value int);
+
+mysql> insert into storehouses_products (product, value) values ('product1', 0);
+mysql> insert into storehouses_products (product, value) values ('product2', 2);
+mysql> insert into storehouses_products (product, value) values ('product3', 4);
+mysql> insert into storehouses_products (product, value) values ('product4', 0);
+mysql> insert into storehouses_products (product, value) values ('product5', 10);
+
+mysql> select * from storehouses_products;
++----+----------+-------+
+| id | product  | value |
++----+----------+-------+
+|  1 | product1 |     0 |
+|  2 | product2 |     2 |
+|  3 | product3 |     4 |
+|  4 | product4 |     0 |
+|  5 | product5 |    10 |
++----+----------+-------+
+
+mysql> select * from storehouses_products where value > 0 union select * from storehouses_products where value = 0;
++----+----------+-------+
+| id | product  | value |
++----+----------+-------+
+|  2 | product2 |     2 |
+|  3 | product3 |     4 |
+|  5 | product5 |    10 |
+|  1 | product1 |     0 |
+|  4 | product4 |     0 |
++----+----------+-------+
 
 4. (по желанию) Из таблицы users необходимо извлечь пользователей, родившихся в августе и мае. 
 Месяцы заданы в виде списка английских названий ('may', 'august')
