@@ -160,3 +160,39 @@ mysql> select * from users where month in ('may', 'august');
 5. (по желанию) Из таблицы catalogs извлекаются записи при помощи запроса. 
 SELECT * FROM catalogs WHERE id IN (5, 1, 2); Отсортируйте записи в порядке, заданном в списке IN.
 
+mysql> create table catalogs (id int primary key auto_increment, name varchar(255));
+
+mysql> insert into catalogs (name) values ('catalog1');
+mysql> insert into catalogs (name) values ('catalog2');
+mysql> insert into catalogs (name) values ('catalog3');
+mysql> insert into catalogs (name) values ('catalog4');
+mysql> insert into catalogs (name) values ('catalog5');
+
+mysql> select * from catalogs;
++----+----------+
+| id | name     |
++----+----------+
+|  1 | catalog1 |
+|  2 | catalog2 |
+|  3 | catalog3 |
+|  4 | catalog4 |
+|  5 | catalog5 |
++----+----------+
+
+mysql> select * from catalogs where id in (5,1,2);
++----+----------+
+| id | name     |
++----+----------+
+|  1 | catalog1 |
+|  2 | catalog2 |
+|  5 | catalog5 |
++----+----------+
+
+mysql> select * from catalogs where id in (5,1,2) order by field(id,5,1,2);
++----+----------+
+| id | name     |
++----+----------+
+|  5 | catalog5 |
+|  1 | catalog1 |
+|  2 | catalog2 |
++----+----------+
