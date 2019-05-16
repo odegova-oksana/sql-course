@@ -1,0 +1,3 @@
+https://github.com/odegova-oksana/sql-course/blob/master/lesson%205/hw_lesson5_part1.sql
+
+https://github.com/odegova-oksana/sql-course/blob/master/lesson%205/hw_lesson5_part2.sql
