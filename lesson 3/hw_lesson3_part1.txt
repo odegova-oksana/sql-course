@@ -1,0 +1,198 @@
+Практическое задание тема №3
+
+1. Пусть в таблице users поля created_at и updated_at оказались незаполненными. Заполните их текущими датой и временем.
+
+mysql> create database users;
+
+mysql> use users;
+Database changed
+
+mysql> create table users (id int primary key auto_increment, name varchar(255), birthday_at date, create_at datetime default CURRENT_TIMESTAMP, update_at datetime default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP);
+
+mysql> insert into users (name, birthday_at) values ('user1', '1980-11-23');
+
+mysql> insert into users (name, birthday_at) values ('user2', '1984-09-26');
+
+mysql> insert into users (name, birthday_at) values ('user3', '1990-04-12');
+
+mysql> select * from users;
++----+-------+-------------+---------------------+---------------------+
+| id | name  | birthday_at | create_at           | update_at           |
++----+-------+-------------+---------------------+---------------------+
+|  1 | user1 | 1980-11-23  | 2019-04-28 17:51:10 | 2019-04-28 17:51:10 |
+|  2 | user2 | 1984-09-26  | 2019-04-28 17:51:23 | 2019-04-28 17:51:23 |
+|  3 | user3 | 1990-04-12  | 2019-04-28 17:51:36 | 2019-04-28 17:51:36 |
++----+-------+-------------+---------------------+---------------------+
+
+mysql> update users set create_at = null, update_at = null;
+Query OK, 3 rows affected (0.05 sec)
+Rows matched: 3  Changed: 3  Warnings: 0
+
+mysql> select * from users;
++----+-------+-------------+-----------+-----------+
+| id | name  | birthday_at | create_at | update_at |
++----+-------+-------------+-----------+-----------+
+|  1 | user1 | 1980-11-23  | NULL      | NULL      |
+|  2 | user2 | 1984-09-26  | NULL      | NULL      |
+|  3 | user3 | 1990-04-12  | NULL      | NULL      |
+
+mysql> update users set create_at = now(), update_at = now();
+Query OK, 3 rows affected (0.04 sec)
+Rows matched: 3  Changed: 3  Warnings: 0
+
+mysql> select * from users;
++----+-------+-------------+---------------------+---------------------+
+| id | name  | birthday_at | create_at           | update_at           |
++----+-------+-------------+---------------------+---------------------+
+|  1 | user1 | 1980-11-23  | 2019-04-28 17:56:14 | 2019-04-28 17:56:14 |
+|  2 | user2 | 1984-09-26  | 2019-04-28 17:56:14 | 2019-04-28 17:56:14 |
+|  3 | user3 | 1990-04-12  | 2019-04-28 17:56:14 | 2019-04-28 17:56:14 |
++----+-------+-------------+---------------------+---------------------+
+
+2. Таблица users была неудачно спроектирована. 
+Записи created_at и updated_at были заданы типом VARCHAR и в них долгое время помещались 
+значения в формате "20.10.2017 8:10". Необходимо преобразовать поля к типу DATETIME, 
+сохранив введеные ранее значения.
+
+mysql> alter table users add create_at_var varchar(255);
+
+mysql> alter table users add update_at_var varchar(255);
+
+mysql> update users set create_at_var = '2019-04-28 17:56', update_at_var = '2019-04-28 17:51'  where id = 1;
+mysql> update users set create_at_var = '2019-04-28 17:56', update_at_var = '2019-04-28 17:51'  where id = 2;
+mysql> update users set create_at_var = '2019-04-28 17:56', update_at_var = '2019-04-28 17:51'  where id = 3;
+
+mysql> select * from users;
++----+-------+-------------+---------------------+---------------------+------------------+------------------+
+| id | name  | birthday_at | create_at           | update_at           | create_at_var    | update_at_var    |
++----+-------+-------------+---------------------+---------------------+------------------+------------------+
+|  1 | user1 | 1980-11-23  | 2019-04-28 17:56:14 | 2019-04-28 18:07:50 | 2019-04-28 17:56 | 2019-04-28 17:51 |
+|  2 | user2 | 1984-09-26  | 2019-04-28 17:56:14 | 2019-04-28 18:08:33 | 2019-04-28 17:56 | 2019-04-28 17:51 |
+|  3 | user3 | 1990-04-12  | 2019-04-28 17:56:14 | 2019-04-28 18:08:36 | 2019-04-28 17:56 | 2019-04-28 17:51 |
++----+-------+-------------+---------------------+---------------------+------------------+------------------+
+
+mysql> ALTER TABLE users MODIFY COLUMN create_at_var datetime;
+mysql> ALTER TABLE users MODIFY COLUMN update_at_var datetime;
+
+mysql> select * from users;
++----+-------+-------------+---------------------+---------------------+---------------------+---------------------+
+| id | name  | birthday_at | create_at           | update_at           | create_at_var       | update_at_var       |
++----+-------+-------------+---------------------+---------------------+---------------------+---------------------+
+|  1 | user1 | 1980-11-23  | 2019-04-28 17:56:14 | 2019-04-28 18:07:50 | 2019-04-28 17:56:00 | 2019-04-28 17:51:00 |
+|  2 | user2 | 1984-09-26  | 2019-04-28 17:56:14 | 2019-04-28 18:08:33 | 2019-04-28 17:56:00 | 2019-04-28 17:51:00 |
+|  3 | user3 | 1990-04-12  | 2019-04-28 17:56:14 | 2019-04-28 18:08:36 | 2019-04-28 17:56:00 | 2019-04-28 17:51:00 |
+
+3. В таблице складских запасов storehouses_products в поле value могут встречаться самые разные цифры: 
+0, если товар закончился и выше нуля, если на складе имеются запасы. 
+Необходимо отсортировать записи таким образом, чтобы они выводились в порядке увеличения значения value. 
+Однако, нулевые запасы должны выводиться в конце, после всех записей.
+
+mysql> create table storehouses_products (id int primary key auto_increment, product varchar(255), value int);
+
+mysql> insert into storehouses_products (product, value) values ('product1', 0);
+mysql> insert into storehouses_products (product, value) values ('product2', 2);
+mysql> insert into storehouses_products (product, value) values ('product3', 4);
+mysql> insert into storehouses_products (product, value) values ('product4', 0);
+mysql> insert into storehouses_products (product, value) values ('product5', 10);
+
+mysql> select * from storehouses_products;
++----+----------+-------+
+| id | product  | value |
++----+----------+-------+
+|  1 | product1 |     0 |
+|  2 | product2 |     2 |
+|  3 | product3 |     4 |
+|  4 | product4 |     0 |
+|  5 | product5 |    10 |
++----+----------+-------+
+
+mysql> select * from storehouses_products where value > 0 union select * from storehouses_products where value = 0;
++----+----------+-------+
+| id | product  | value |
++----+----------+-------+
+|  2 | product2 |     2 |
+|  3 | product3 |     4 |
+|  5 | product5 |    10 |
+|  1 | product1 |     0 |
+|  4 | product4 |     0 |
++----+----------+-------+
+
+4. (по желанию) Из таблицы users необходимо извлечь пользователей, родившихся в августе и мае. 
+Месяцы заданы в виде списка английских названий ('may', 'august')
+
+mysql> alter table users add month varchar(255);
+
+mysql> select * from users;
++----+-------+-------------+---------------------+---------------------+---------------------+---------------------+-------+
+| id | name  | birthday_at | create_at           | update_at           | create_at_var       | update_at_var       | month |
++----+-------+-------------+---------------------+---------------------+---------------------+---------------------+-------+
+|  1 | user1 | 1980-11-23  | 2019-04-28 17:56:14 | 2019-04-28 18:07:50 | 2019-04-28 17:56:00 | 2019-04-28 17:51:00 | NULL  |
+|  2 | user2 | 1984-09-26  | 2019-04-28 17:56:14 | 2019-04-28 18:08:33 | 2019-04-28 17:56:00 | 2019-04-28 17:51:00 | NULL  |
+|  3 | user3 | 1990-04-12  | 2019-04-28 17:56:14 | 2019-04-28 18:08:36 | 2019-04-28 17:56:00 | 2019-04-28 17:51:00 | NULL  |
++----+-------+-------------+---------------------+---------------------+---------------------+---------------------+-------+
+
+mysql> insert into users (name, birthday_at, month) values ('user4', '1989-05-24', 'may');
+mysql> insert into users (name, birthday_at, month) values ('user5', '1997-08-14', 'august');
+
+mysql> update users set month = 'november' where id = 1;
+mysql> update users set month = 'september' where id = 2;
+mysql> update users set month = 'april' where id = 3;
+
+mysql> select * from users;
++----+-------+-------------+---------------------+---------------------+---------------------+---------------------+-----------+
+| id | name  | birthday_at | create_at           | update_at           | create_at_var       | update_at_var       | month     |
++----+-------+-------------+---------------------+---------------------+---------------------+---------------------+-----------+
+|  1 | user1 | 1980-11-23  | 2019-04-28 17:56:14 | 2019-04-28 18:25:15 | 2019-04-28 17:56:00 | 2019-04-28 17:51:00 | november  |
+|  2 | user2 | 1984-09-26  | 2019-04-28 17:56:14 | 2019-04-28 18:25:27 | 2019-04-28 17:56:00 | 2019-04-28 17:51:00 | september |
+|  3 | user3 | 1990-04-12  | 2019-04-28 17:56:14 | 2019-04-28 18:25:39 | 2019-04-28 17:56:00 | 2019-04-28 17:51:00 | april     |
+|  4 | user4 | 1989-05-24  | 2019-04-28 18:24:21 | 2019-04-28 18:24:21 | NULL                | NULL                | may       |
+|  5 | user5 | 1997-08-14  | 2019-04-28 18:24:42 | 2019-04-28 18:24:42 | NULL                | NULL                | august    |
++----+-------+-------------+---------------------+---------------------+---------------------+---------------------+-----------+
+
+mysql> select * from users where month in ('may', 'august');
++----+-------+-------------+---------------------+---------------------+---------------+---------------+--------+
+| id | name  | birthday_at | create_at           | update_at           | create_at_var | update_at_var | month  |
++----+-------+-------------+---------------------+---------------------+---------------+---------------+--------+
+|  4 | user4 | 1989-05-24  | 2019-04-28 18:24:21 | 2019-04-28 18:24:21 | NULL          | NULL          | may    |
+|  5 | user5 | 1997-08-14  | 2019-04-28 18:24:42 | 2019-04-28 18:24:42 | NULL          | NULL          | august |
++----+-------+-------------+---------------------+---------------------+---------------+---------------+--------+
+
+5. (по желанию) Из таблицы catalogs извлекаются записи при помощи запроса. 
+SELECT * FROM catalogs WHERE id IN (5, 1, 2); Отсортируйте записи в порядке, заданном в списке IN.
+
+mysql> create table catalogs (id int primary key auto_increment, name varchar(255));
+
+mysql> insert into catalogs (name) values ('catalog1');
+mysql> insert into catalogs (name) values ('catalog2');
+mysql> insert into catalogs (name) values ('catalog3');
+mysql> insert into catalogs (name) values ('catalog4');
+mysql> insert into catalogs (name) values ('catalog5');
+
+mysql> select * from catalogs;
++----+----------+
+| id | name     |
++----+----------+
+|  1 | catalog1 |
+|  2 | catalog2 |
+|  3 | catalog3 |
+|  4 | catalog4 |
+|  5 | catalog5 |
++----+----------+
+
+mysql> select * from catalogs where id in (5,1,2);
++----+----------+
+| id | name     |
++----+----------+
+|  1 | catalog1 |
+|  2 | catalog2 |
+|  5 | catalog5 |
++----+----------+
+
+mysql> select * from catalogs where id in (5,1,2) order by field(id,5,1,2);
++----+----------+
+| id | name     |
++----+----------+
+|  5 | catalog5 |
+|  1 | catalog1 |
+|  2 | catalog2 |
++----+----------+
