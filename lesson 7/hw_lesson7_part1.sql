@@ -85,7 +85,49 @@ VALUES
 
 ERROR 1644 (45000): INSERT canceled. Name and description are NULL.
 
+DROP TRIGGER IF exists check_product_update//
+
+CREATE TRIGGER check_product_update BEFORE UPDATE ON products
+FOR EACH ROW
+BEGIN
+  DECLARE product_name, product_desc varchar(255);
+  SELECT name INTO product_name FROM products where id = NEW.id;
+  SELECT description INTO product_desc FROM products where id = NEW.id;
+  
+  IF NEW.name is NULL and product_desc is NULL THEN
+  set NEW.name = product_name;
+  END IF;
+
+  IF NEW.description is NULL and product_name is NULL THEN
+  set NEW.description = product_desc;
+  END IF;
+END//
+
 3. (по желанию) Напишите хранимую функцию для вычисления произвольного числа Фибоначчи. 
 Числами Фибоначчи называется последовательность в которой число равно сумме двух предыдущих чисел. 
 Вызов функции FIBONACCI(10) должен возвращать число 55. 
+
+drop function if exists FIBONACCI//
+
+CREATE FUNCTION FIBONACCI (num INT)
+RETURNS INT DETERMINISTIC
+BEGIN
+  DECLARE FIRST, SECOND, SUM, i INT;
+  SET FIRST = 0;
+  SET SECOND = 1;
+  SET i = 0;
+
+  IF (num > 0) THEN
+    WHILE i < num - 1 DO
+      SET SUM = FIRST + SECOND;
+      SET FIRST = SECOND;
+      SET SECOND = SUM;
+      SET i = i + 1;
+    END WHILE;
+  END IF;
+
+RETURN SECOND;
+END//
+
+select FIBONACCI(10)//
 ￼
